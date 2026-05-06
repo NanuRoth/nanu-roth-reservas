@@ -141,12 +141,20 @@ textarea.finp{resize:none;height:100px;line-height:1.55}
     <div class="svc-card" id="sc0" onclick="selSvc(0)">
       <div class="svc-row"><div class="svc-name">Masaje deportivo &amp; descontracturante</div><div class="chk"></div></div>
       <div class="svc-desc">Alivia tensiones musculares y contracturas. Ideal para atletas y personas activas.</div>
-      <div class="chips"><span class="chip">⏱ 2 hs</span><span class="chip">Descontracturante</span><span class="chip">$55.000</span></div>
+      <div class="chips"><span class="chip">⏱ 2 hs</span><span class="chip">Descontracturante</span><span class="chip chip-precio">$55.000</span></div>
     </div>
     <div class="svc-card" id="sc1" onclick="selSvc(1)">
       <div class="svc-row"><div class="svc-name">Drenaje linfático</div><div class="chk"></div></div>
       <div class="svc-desc">Estimula el sistema linfático para reducir inflamación y retención de líquidos.</div>
-      <div class="chips"><span class="chip">⏱ 1 h 30 min</span><span class="chip">Relajante</span><span class="chip">$40.000</span></div>
+      <div class="chips"><span class="chip">⏱ 1 h 30 min</span><span class="chip">Relajante</span><span class="chip chip-precio">$40.000</span></div>
+    </div>
+    <div style="background:var(--surf);border:1.5px solid var(--brd);border-radius:var(--rs);padding:14px 16px;margin-top:4px;">
+      <div style="font-size:12px;font-weight:500;color:var(--txt3);letter-spacing:0.12em;text-transform:uppercase;margin-bottom:10px;">Código promocional</div>
+      <div style="display:flex;gap:8px;">
+        <input id="promo-input" type="text" class="finp" placeholder="Ingresá tu código" style="flex:1;padding:11px 14px;font-size:15px;">
+        <button onclick="aplicarPromo()" style="padding:11px 16px;background:var(--pri);color:#fff;border:none;border-radius:var(--rs);font-size:14px;font-weight:500;cursor:pointer;font-family:'DM Sans',sans-serif;white-space:nowrap;">Aplicar</button>
+      </div>
+      <div id="promo-msg" style="font-size:13px;margin-top:8px;min-height:18px;color:var(--txt2);"></div>
     </div>
   </div>
   <div class="btm"><button class="btn-p" id="bn1" onclick="goTo(2)" disabled>Continuar</button></div>
@@ -237,6 +245,7 @@ textarea.finp{resize:none;height:100px;line-height:1.55}
       <div class="sum-row"><span class="sum-k">Horario</span><span class="sum-v" id="sv-t"></span></div>
       <div class="sum-row"><span class="sum-k">Duración</span><span class="sum-v" id="sv-dur"></span></div>
       <div class="sum-row"><span class="sum-k">Nombre</span><span class="sum-v" id="sv-n"></span></div>
+      <div class="sum-row"><span class="sum-k">Precio</span><span class="sum-v" id="sv-precio"></span></div>
     </div>
     <div class="sum-note" style="display:none"></div>
     <div class="err-msg" id="err-msg">El turno ya no está disponible. Volvé a elegir un horario.</div>
@@ -290,6 +299,9 @@ var DAYS_ES=['lunes','martes','miércoles','jueves','viernes','sábado','domingo
 var SVC_NAMES=['Masaje deportivo & descontracturante','Drenaje linfático'];
 var SVC_DUR=[120,90];
 var SVC_DUR_TXT=['2 hs','1 h 30 min'];
+var SVC_PRICES=[55000,40000];
+var PROMO_CODES={'51BOX':10,'RANERZZZ':10,'VIP':10,'PROMO':15};
+var promoDiscount=0;
 var SLOTS_LV=[
   {t:'08:00',h:8,m:0,lbl:'Mañana'},
   {t:'16:00',h:16,m:0,lbl:'Tarde'},
@@ -541,6 +553,38 @@ function selSlot(el,timeStr) {
 // ============================================================
 // FORMULARIO Y RESUMEN
 // ============================================================
+function fmtPrecio(n){return '$'+n.toLocaleString('es-AR');}
+
+function aplicarPromo(){
+  var raw=document.getElementById('promo-input').value.trim().toUpperCase();
+  var msg=document.getElementById('promo-msg');
+  if(raw===''){promoDiscount=0;msg.textContent='';updatePriceChips();return;}
+  if(PROMO_CODES[raw]!==undefined){
+    promoDiscount=PROMO_CODES[raw];
+    msg.style.color='#065F46';
+    msg.textContent='\u2713 Descuento del '+promoDiscount+'% aplicado.';
+  } else {
+    promoDiscount=0;
+    msg.style.color='#B91C1C';
+    msg.textContent='Código inválido o expirado.';
+  }
+  updatePriceChips();
+}
+
+function updatePriceChips(){
+  var chips=document.querySelectorAll('.chip-precio');
+  chips.forEach(function(chip,i){
+    var final=promoDiscount>0?Math.round(SVC_PRICES[i]*(1-promoDiscount/100)):SVC_PRICES[i];
+    if(promoDiscount>0){
+      chip.innerHTML='<s style="opacity:.55;font-size:12px;">'+fmtPrecio(SVC_PRICES[i])+'</s> '+fmtPrecio(final);
+      chip.style.background='#ECFDF5';chip.style.color='#065F46';chip.style.borderColor='#A7F3D0';
+    } else {
+      chip.textContent=fmtPrecio(SVC_PRICES[i]);
+      chip.style.background='';chip.style.color='';chip.style.borderColor='';
+    }
+  });
+}
+
 function chkForm(){
   var ok=document.getElementById('f-name').value.trim().length>=2 &&
          document.getElementById('f-phone').value.trim().length>=6;
@@ -557,6 +601,9 @@ function fillSum(){
   document.getElementById('sv-t').textContent=S.timeStr||'—';
   document.getElementById('sv-dur').textContent=SVC_DUR_TXT[S.svc]||'—';
   document.getElementById('sv-n').textContent=document.getElementById('f-name').value;
+  var precioFinal=promoDiscount>0?Math.round(SVC_PRICES[S.svc]*(1-promoDiscount/100)):SVC_PRICES[S.svc];
+  var precioTxt=fmtPrecio(precioFinal);
+  document.getElementById('sv-precio').textContent=precioTxt;
   document.getElementById('err-msg').style.display='none';
   var btn=document.getElementById('bn5');btn.disabled=false;btn.textContent='Continuar';
 }
@@ -597,16 +644,20 @@ function confirmar(){
     var dn=DAYS_ES[dow===0?6:dow-1];
     var fechaStr=dn.charAt(0).toUpperCase()+dn.slice(1)+' '+S.date.getDate()+' de '+MONTHS[S.date.getMonth()].toLowerCase();
     var msg='Hola Nanu! Quiero reservar el siguiente turno:\n\n';
+    var precioFinalWA=promoDiscount>0?Math.round(SVC_PRICES[S.svc]*(1-promoDiscount/100)):SVC_PRICES[S.svc];
+    var precioMsgWA=fmtPrecio(precioFinalWA)+(promoDiscount>0?' (descuento '+promoDiscount+'% aplicado)':'');
     msg+='Servicio: '+SVC_NAMES[S.svc]+'\n';
     msg+='Fecha: '+fechaStr+'\n';
     msg+='Horario: '+S.timeStr+'\n';
     msg+='Nombre: '+nombre+'\n';
     msg+='Teléfono: '+telefono+'\n';
+    msg+='Precio: '+precioMsgWA+'\n';
     if(notas) msg+='Notas: '+notas+'\n';
     msg+='\nPara confirmar enviar la seña de $15.000 al alias:\nAlias: Roth.nanu\nTitular: Daniela Cecilia Roth';
     document.getElementById('wa-btn').href='https://wa.me/542236013854?text='+encodeURIComponent(msg);
 
-    var payload={nombre:nombre,telefono:telefono,servicio:SVC_NAMES[S.svc],fecha:fecha,horario:S.timeStr,duracion:dur,notas:notas};
+    var precioFinalPayload=promoDiscount>0?Math.round(SVC_PRICES[S.svc]*(1-promoDiscount/100)):SVC_PRICES[S.svc];
+    var payload={nombre:nombre,telefono:telefono,servicio:SVC_NAMES[S.svc],fecha:fecha,horario:S.timeStr,duracion:dur,notas:notas,precio:fmtPrecio(precioFinalPayload),descuento:promoDiscount>0?promoDiscount+'%':''};
 
     fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
     .then(function(){goTo(6);})
