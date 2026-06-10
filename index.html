@@ -300,8 +300,11 @@ var SVC_NAMES=['Masaje deportivo & descontracturante','Drenaje linfático'];
 var SVC_DUR=[120,90];
 var SVC_DUR_TXT=['2 hs','1 h 30 min'];
 var SVC_PRICES=[55000,40000];
-var PROMO_CODES={'51BOX':10,'RANERZZZ':10,'VIP':10,'PROMO':15};
+var PROMO_CODES={'51BOX':10,'RANERZZZ':10,'VIP':10,'PROMO':15,'JUNIO':15};
+var PROMO_SVC={'JUNIO':[0]};        // JUNIO: solo Masaje descontracturante (indice 0). El resto aplica a todo.
+var PROMO_SERVER={'JUNIO':true};    // JUNIO: limite de usos verificado en el servidor (Calendar)
 var promoDiscount=0;
+var promoCode='';
 var SLOTS_LV=[
   {t:'08:00',h:8,m:0,lbl:'Mañana'},
   {t:'16:00',h:16,m:0,lbl:'Tarde'},
@@ -361,6 +364,31 @@ function checkDisponibilidad(fecha, horario, duracion, cb) {
     cb(true);
   };
   document.head.appendChild(script);
+}
+
+// ============================================================
+// PROMO — a qué servicios aplica el código y verificación de usos
+// ============================================================
+function promoAplicaA(svcIdx){
+  if(promoDiscount<=0||promoCode==='') return false;
+  var lista=PROMO_SVC[promoCode];
+  if(!lista) return true;            // codigo sin restriccion: aplica a todo
+  return lista.indexOf(svcIdx)!==-1; // codigo restringido: solo a esos servicios
+}
+function descPara(svcIdx){ return promoAplicaA(svcIdx)?promoDiscount:0; }
+
+// JSONP — consulta al Calendar cuántos usos quedan de un código con límite
+function checkPromoServer(code, cb){
+  var cbName='_nrp_'+Date.now()+'_'+Math.floor(Math.random()*9999);
+  var sc=document.createElement('script');
+  var timeout=setTimeout(function(){delete window[cbName];if(sc&&sc.parentNode)sc.parentNode.removeChild(sc);cb(null);},8000);
+  window[cbName]=function(data){
+    clearTimeout(timeout);delete window[cbName];if(sc&&sc.parentNode)sc.parentNode.removeChild(sc);
+    cb(data);
+  };
+  sc.src=SCRIPT_URL+'?action=promoStatus&code='+encodeURIComponent(code)+'&callback='+cbName+'&_='+Date.now();
+  sc.onerror=function(){clearTimeout(timeout);delete window[cbName];cb(null);};
+  document.head.appendChild(sc);
 }
 
 // ============================================================
@@ -558,24 +586,44 @@ function fmtPrecio(n){return '$'+n.toLocaleString('es-AR');}
 function aplicarPromo(){
   var raw=document.getElementById('promo-input').value.trim().toUpperCase();
   var msg=document.getElementById('promo-msg');
-  if(raw===''){promoDiscount=0;msg.textContent='';updatePriceChips();return;}
-  if(PROMO_CODES[raw]!==undefined){
-    promoDiscount=PROMO_CODES[raw];
-    msg.style.color='#065F46';
-    msg.textContent='\u2713 Descuento del '+promoDiscount+'% aplicado.';
-  } else {
-    promoDiscount=0;
+  if(raw===''){promoDiscount=0;promoCode='';msg.textContent='';updatePriceChips();return;}
+  if(PROMO_CODES[raw]===undefined){
+    promoDiscount=0;promoCode='';
     msg.style.color='#B91C1C';
     msg.textContent='Código inválido o expirado.';
+    updatePriceChips();return;
   }
+  // Código con límite de usos (JUNIO): verificar contra el Calendar antes de aplicar
+  if(PROMO_SERVER[raw]){
+    msg.style.color='var(--txt2)';
+    msg.textContent='Verificando código…';
+    checkPromoServer(raw,function(data){
+      if(!data||data.valido!==true){
+        promoDiscount=0;promoCode='';
+        msg.style.color='#B91C1C';
+        msg.textContent='Código inválido o expirado.';
+        updatePriceChips();return;
+      }
+      promoDiscount=PROMO_CODES[raw];promoCode=raw;
+      msg.style.color='#065F46';
+      msg.textContent='\u2713 Descuento del '+promoDiscount+'% — solo Masaje descontracturante.';
+      updatePriceChips();
+    });
+    return;
+  }
+  // Código común (sin límite)
+  promoDiscount=PROMO_CODES[raw];promoCode=raw;
+  msg.style.color='#065F46';
+  msg.textContent='\u2713 Descuento del '+promoDiscount+'% aplicado.';
   updatePriceChips();
 }
 
 function updatePriceChips(){
   var chips=document.querySelectorAll('.chip-precio');
   chips.forEach(function(chip,i){
-    var final=promoDiscount>0?Math.round(SVC_PRICES[i]*(1-promoDiscount/100)):SVC_PRICES[i];
-    if(promoDiscount>0){
+    var d=descPara(i);
+    var final=d>0?Math.round(SVC_PRICES[i]*(1-d/100)):SVC_PRICES[i];
+    if(d>0){
       chip.innerHTML='<s style="opacity:.55;font-size:12px;">'+fmtPrecio(SVC_PRICES[i])+'</s> '+fmtPrecio(final);
       chip.style.background='#ECFDF5';chip.style.color='#065F46';chip.style.borderColor='#A7F3D0';
     } else {
@@ -601,7 +649,8 @@ function fillSum(){
   document.getElementById('sv-t').textContent=S.timeStr||'—';
   document.getElementById('sv-dur').textContent=SVC_DUR_TXT[S.svc]||'—';
   document.getElementById('sv-n').textContent=document.getElementById('f-name').value;
-  var precioFinal=promoDiscount>0?Math.round(SVC_PRICES[S.svc]*(1-promoDiscount/100)):SVC_PRICES[S.svc];
+  var dSum=descPara(S.svc);
+  var precioFinal=dSum>0?Math.round(SVC_PRICES[S.svc]*(1-dSum/100)):SVC_PRICES[S.svc];
   var precioTxt=fmtPrecio(precioFinal);
   document.getElementById('sv-precio').textContent=precioTxt;
   document.getElementById('err-msg').style.display='none';
@@ -620,49 +669,70 @@ function confirmar(){
   var fecha=fechaISO(S.date);
   var dur=SVC_DUR[S.svc];
 
-  // Doble check: verificar disponibilidad justo antes de confirmar
-  checkDisponibilidad(fecha, S.timeStr, dur, function(disponible){
-    if(!disponible){
-      document.getElementById('err-msg').style.display='block';
-      btn.innerHTML='Confirmar turno';
-      btn.disabled=false;
-      // Volver a cargar slots para mostrar el actualizado
+  // Paso siguiente: verificar disponibilidad y crear el turno
+  function seguirConDisponibilidad(){
+    // Doble check: verificar disponibilidad justo antes de confirmar
+    checkDisponibilidad(fecha, S.timeStr, dur, function(disponible){
+      if(!disponible){
+        document.getElementById('err-msg').style.display='block';
+        btn.innerHTML='Confirmar turno';
+        btn.disabled=false;
+        // Volver a cargar slots para mostrar el actualizado
+        var dow=S.date.getDay();
+        cargarSlots(dow);
+        return;
+      }
+
+      // Disponible — crear evento
+      btn.innerHTML='<span class="spinner"></span>Enviando...';
+
+      var nombre=document.getElementById('f-name').value.trim();
+      var telefono=document.getElementById('f-phone').value.trim();
+      var notas=document.getElementById('f-notes').value.trim();
+
+      // Armar URL WhatsApp
       var dow=S.date.getDay();
-      cargarSlots(dow);
-      return;
-    }
+      var dn=DAYS_ES[dow===0?6:dow-1];
+      var fechaStr=dn.charAt(0).toUpperCase()+dn.slice(1)+' '+S.date.getDate()+' de '+MONTHS[S.date.getMonth()].toLowerCase();
+      var dSel=descPara(S.svc);
+      var msg='Hola Nanu! Quiero reservar el siguiente turno:\n\n';
+      var precioFinalWA=dSel>0?Math.round(SVC_PRICES[S.svc]*(1-dSel/100)):SVC_PRICES[S.svc];
+      var precioMsgWA=fmtPrecio(precioFinalWA)+(dSel>0?' (descuento '+dSel+'% aplicado)':'');
+      msg+='Servicio: '+SVC_NAMES[S.svc]+'\n';
+      msg+='Fecha: '+fechaStr+'\n';
+      msg+='Horario: '+S.timeStr+'\n';
+      msg+='Nombre: '+nombre+'\n';
+      msg+='Teléfono: '+telefono+'\n';
+      msg+='Precio: '+precioMsgWA+'\n';
+      if(notas) msg+='Notas: '+notas+'\n';
+      msg+='\nPara confirmar enviar la seña de $15.000 al alias:\nAlias: Roth.nanu\nTitular: Daniela Cecilia Roth';
+      document.getElementById('wa-btn').href='https://wa.me/542236013854?text='+encodeURIComponent(msg);
 
-    // Disponible — crear evento
-    btn.innerHTML='<span class="spinner"></span>Enviando...';
+      var precioFinalPayload=dSel>0?Math.round(SVC_PRICES[S.svc]*(1-dSel/100)):SVC_PRICES[S.svc];
+      var payload={nombre:nombre,telefono:telefono,servicio:SVC_NAMES[S.svc],fecha:fecha,horario:S.timeStr,duracion:dur,notas:notas,precio:fmtPrecio(precioFinalPayload),descuento:dSel>0?dSel+'%':'',codigo:dSel>0?promoCode:''};
 
-    var nombre=document.getElementById('f-name').value.trim();
-    var telefono=document.getElementById('f-phone').value.trim();
-    var notas=document.getElementById('f-notes').value.trim();
+      fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
+      .then(function(){goTo(6);})
+      .catch(function(){goTo(6);});
+    });
+  }
 
-    // Armar URL WhatsApp
-    var dow=S.date.getDay();
-    var dn=DAYS_ES[dow===0?6:dow-1];
-    var fechaStr=dn.charAt(0).toUpperCase()+dn.slice(1)+' '+S.date.getDate()+' de '+MONTHS[S.date.getMonth()].toLowerCase();
-    var msg='Hola Nanu! Quiero reservar el siguiente turno:\n\n';
-    var precioFinalWA=promoDiscount>0?Math.round(SVC_PRICES[S.svc]*(1-promoDiscount/100)):SVC_PRICES[S.svc];
-    var precioMsgWA=fmtPrecio(precioFinalWA)+(promoDiscount>0?' (descuento '+promoDiscount+'% aplicado)':'');
-    msg+='Servicio: '+SVC_NAMES[S.svc]+'\n';
-    msg+='Fecha: '+fechaStr+'\n';
-    msg+='Horario: '+S.timeStr+'\n';
-    msg+='Nombre: '+nombre+'\n';
-    msg+='Teléfono: '+telefono+'\n';
-    msg+='Precio: '+precioMsgWA+'\n';
-    if(notas) msg+='Notas: '+notas+'\n';
-    msg+='\nPara confirmar enviar la seña de $15.000 al alias:\nAlias: Roth.nanu\nTitular: Daniela Cecilia Roth';
-    document.getElementById('wa-btn').href='https://wa.me/542236013854?text='+encodeURIComponent(msg);
-
-    var precioFinalPayload=promoDiscount>0?Math.round(SVC_PRICES[S.svc]*(1-promoDiscount/100)):SVC_PRICES[S.svc];
-    var payload={nombre:nombre,telefono:telefono,servicio:SVC_NAMES[S.svc],fecha:fecha,horario:S.timeStr,duracion:dur,notas:notas,precio:fmtPrecio(precioFinalPayload),descuento:promoDiscount>0?promoDiscount+'%':''};
-
-    fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)})
-    .then(function(){goTo(6);})
-    .catch(function(){goTo(6);});
-  });
+  // Si el código tiene límite (JUNIO) y aplica a este servicio, re-verificar
+  // contra el Calendar por si se agotó entre que lo aplicó y ahora.
+  if(promoCode && PROMO_SERVER[promoCode] && promoAplicaA(S.svc)){
+    checkPromoServer(promoCode,function(data){
+      if(!data||data.valido!==true){
+        promoDiscount=0;promoCode='';
+        var pm=document.getElementById('promo-msg');
+        if(pm){pm.style.color='#B91C1C';pm.textContent='El código se agotó. Se aplicó el precio sin descuento.';}
+        fillSum(); // recalcula el precio y reactiva el botón para confirmar de nuevo
+        return;
+      }
+      seguirConDisponibilidad();
+    });
+  } else {
+    seguirConDisponibilidad();
+  }
 }
 
 function copyAlias(){
