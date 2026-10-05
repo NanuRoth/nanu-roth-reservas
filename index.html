@@ -21,6 +21,7 @@
   --warn-bg:#FFF8ED;--warn-brd:#FCD07A;--warn-txt:#92400E;--warn-ic:#B45309;
   --ok:#065F46;--ok-bg:#ECFDF5;--ok-brd:#A7F3D0;
   --err-bg:#FEF2F2;--err-brd:#FECACA;--err-txt:#B91C1C;
+  --cd:#4F46E5;--cd-d:#3730A3;
   --rosa:#EC4899;--rosa-m:#DB2777;--rosa-d:#BE185D;--rosa-l:#FBCFE8;--rosa-p:#FCE7F3;--rosa-xp:#FDF2F8;
   --wa:#25D366;--shadow:rgba(91,33,182,0.10);
   --r:16px;--rs:12px;
@@ -151,6 +152,9 @@ textarea.finp{resize:none;height:100px;line-height:1.55}
 .svc-madre .svc-name{color:var(--rosa-d);font-weight:700;font-size:27px;letter-spacing:.005em}
 .svc-madre.sel .chk{background:var(--rosa);border-color:var(--rosa)}
 .madre-badge{display:flex;width:-moz-fit-content;width:fit-content;margin:0 auto 15px;align-items:center;justify-content:center;gap:8px;background:var(--rosa-p);color:var(--rosa-d);border:1px solid var(--rosa-l);font-size:15px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;padding:10px 20px;border-radius:22px;text-align:center;line-height:1.2}
+.madre-cd{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;background:linear-gradient(135deg,var(--cd) 0%,var(--cd-d) 100%);color:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 4px 14px rgba(67,56,202,.30)}
+.madre-cd .cd-l{font-size:12.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;opacity:.82}
+.madre-cd .cd-t{font-size:21px;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
 .madre-note{margin-top:13px;font-size:14px;line-height:1.5;color:var(--rosa-d);font-weight:500;text-align:center}
 .chip-rosa{grid-column:1 / -1;background:var(--rosa-xp);color:var(--rosa-d);border-color:var(--rosa-l);font-size:16px;padding:10px 12px}
 .chip-promo{grid-column:1 / -1;background:linear-gradient(135deg,var(--rosa) 0%,var(--rosa-m) 100%);color:#fff;border:none;font-weight:700;font-size:23.75px;letter-spacing:.005em;padding:16px 16px;border-radius:14px;box-shadow:0 6px 18px rgba(236,72,153,.34)}
@@ -226,6 +230,7 @@ textarea.finp{resize:none;height:100px;line-height:1.55}
         <span class="chip chip-rosa">⏱ 2 sesiones de 2 hs</span>
         <span class="chip chip-promo" id="madre-chip"></span>
       </div>
+      <div class="madre-cd" id="madre-cd"></div>
       <div class="madre-note" id="madre-note"></div>
     </div>
     <div class="svc-card" id="sc0" onclick="selSvc(0)">
@@ -1042,8 +1047,14 @@ function copyAliasEl(btn){
 // ============================================================
 var MADRE_SVC=0;                  // el 2x1 es solo masaje deportivo & descontracturante
 var MADRE_SESIONES=2;             // paga 1, se lleva 2
-var MADRE_HASTA='domingo 18/10';  // ultimo dia de compra (Dia de la Madre 2026)
 var MADRE_VALIDEZ=30;             // dias para usar las dos sesiones
+// Corte de la oferta: martes 06/10/2026 a las 21:00 de Argentina (UTC-3).
+// Se fija en UTC a proposito (21:00 ART = 00:00 UTC del 07/10): asi el corte
+// cae en el mismo instante aunque el celular este en otra zona horaria.
+// Para reusar la promo mas adelante, cambiar SOLO esta linea.
+var MADRE_FIN=new Date(Date.UTC(2026,9,7,0,0,0));
+var madreTimer=null;
+function madreVencida(){return (MADRE_FIN-new Date())<=0;}
 function madrePrecio(){return SVC_PRICES[MADRE_SVC];}                // paga una sola
 function madreValor(){return SVC_PRICES[MADRE_SVC]*MADRE_SESIONES;}  // lo que valdrian sueltas
 
@@ -1051,7 +1062,38 @@ function madreInitCard(){
   var chip=document.getElementById('madre-chip');
   if(chip) chip.innerHTML='<s>'+fmtPrecio(madreValor())+'</s>'+fmtPrecio(madrePrecio());
   var nota=document.getElementById('madre-note');
-  if(nota) nota.textContent='Comprala hasta el '+MADRE_HASTA+' · Coordinás las dos sesiones dentro de los '+MADRE_VALIDEZ+' días.';
+  if(nota) nota.textContent='Coordinás las dos sesiones dentro de los '+MADRE_VALIDEZ+' días.';
+  if(madreVencida()){madreCerrar();return;}   // ya vencida al abrir: no se ofrece
+  madreTick();
+  madreTimer=setInterval(madreTick,1000);
+}
+
+function madreTick(){
+  var el=document.getElementById('madre-cd');
+  if(!el) return;
+  var ms=MADRE_FIN-new Date();
+  if(ms<=0){madreCerrar();return;}
+  var t=Math.floor(ms/1000);
+  var m=Math.floor(t%3600/60), sg=t%60, totH=Math.floor(t/3600);
+  var p=function(n){return (n<10?'0':'')+n;};
+  // Menos de 48 h: horas totales (mas urgente para una oferta flash). Mas: dias + hh:mm:ss.
+  var reloj = totH>=48
+    ? Math.floor(t/86400)+'d '+p(Math.floor(t%86400/3600))+':'+p(m)+':'+p(sg)
+    : p(totH)+':'+p(m)+':'+p(sg);
+  el.innerHTML='<span class="cd-l">Termina en</span><span class="cd-t">'+reloj+'</span>';
+}
+
+// Al vencer, la tarjeta desaparece y deja de ser elegible.
+// A quien ya este en el flujo de compra (m2/m3) NO se lo interrumpe: esta transfiriendo.
+function madreCerrar(){
+  if(madreTimer){clearInterval(madreTimer);madreTimer=null;}
+  var card=document.getElementById('sc-madre');
+  if(card){card.style.display='none';card.onclick=null;}
+  var act=document.querySelector('.screen.active');
+  if(S.madre && act && act.id==='s1'){   // la tenia elegida pero no avanzo
+    S.madre=false;
+    document.getElementById('bn1').disabled=true;
+  }
 }
 
 function selMadre(){
