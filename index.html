@@ -22,6 +22,7 @@
   --ok:#065F46;--ok-bg:#ECFDF5;--ok-brd:#A7F3D0;
   --err-bg:#FEF2F2;--err-brd:#FECACA;--err-txt:#B91C1C;
   --cd:#4F46E5;--cd-d:#3730A3;
+  --pet:#135F6B;--pet-d:#0E4A57;--pet-xd:#083740;--pet-l:#A9D2DA;--pet-p:#E4F1F3;--pet-xp:#F3FAFB;
   --rosa:#EC4899;--rosa-m:#DB2777;--rosa-d:#BE185D;--rosa-l:#FBCFE8;--rosa-p:#FCE7F3;--rosa-xp:#FDF2F8;
   --wa:#25D366;--shadow:rgba(91,33,182,0.10);
   --r:16px;--rs:12px;
@@ -152,6 +153,25 @@ textarea.finp{resize:none;height:100px;line-height:1.55}
 .svc-madre .svc-name{color:var(--rosa-d);font-weight:700;font-size:27px;letter-spacing:.005em}
 .svc-madre.sel .chk{background:var(--rosa);border-color:var(--rosa)}
 .madre-badge{display:flex;width:-moz-fit-content;width:fit-content;margin:0 auto 15px;align-items:center;justify-content:center;gap:8px;background:var(--rosa-p);color:var(--rosa-d);border:1px solid var(--rosa-l);font-size:15px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;padding:10px 20px;border-radius:22px;text-align:center;line-height:1.2}
+/* --- Especial NB Race Series --- */
+.svc-race{background:linear-gradient(150deg,var(--pet-xp) 0%,#fff 58%,var(--pet-p) 100%);border:2px solid var(--pet-l);box-shadow:0 4px 18px rgba(19,95,107,.12)}
+.svc-race::before{background:var(--pet)}
+.svc-race::after{content:'';position:absolute;top:0;left:-60%;width:38%;height:100%;background:linear-gradient(100deg,transparent,rgba(255,255,255,.72),transparent);transform:skewX(-18deg);animation:shimmer 5s ease-in-out .7s infinite;pointer-events:none}
+.svc-race.sel{border-color:var(--pet);box-shadow:0 0 0 3px var(--pet-p)}
+.svc-race.sel .chk{background:var(--pet);border-color:var(--pet)}
+.svc-race .svc-name{color:var(--pet-d);font-weight:700;font-size:27px;letter-spacing:.005em}
+.svc-race .svc-desc{margin-bottom:2px}
+.race-badge{display:flex;width:-moz-fit-content;width:fit-content;margin:0 auto 15px;align-items:center;justify-content:center;gap:8px;background:var(--pet-d);color:#fff;border:1px solid var(--pet-d);font-size:13.5px;font-weight:700;letter-spacing:.13em;text-transform:uppercase;padding:10px 20px;border-radius:22px;text-align:center;line-height:1.2;box-shadow:0 2px 10px rgba(14,74,87,.3)}
+.race-off{background:#F2B98D;color:var(--pet-xd);font-size:12.5px;font-weight:800;letter-spacing:.03em;padding:5px 8px;border-radius:8px;margin-right:8px;white-space:nowrap}
+.chip-pet{grid-column:auto;background:var(--pet-xp);color:var(--pet-d);border-color:var(--pet-l);font-size:14.5px;padding:10px 12px}
+.chip-race{grid-column:1 / -1;background:linear-gradient(135deg,var(--pet) 0%,var(--pet-xd) 100%);color:#fff;border:none;font-weight:700;font-size:21px;letter-spacing:0;padding:16px 12px;border-radius:14px;box-shadow:0 6px 18px rgba(19,95,107,.34)}
+.chip-race s{opacity:.68;font-weight:400;margin-right:8px;font-size:15px}
+.sum-card-pet .sum-hdr{background:var(--pet-d)}
+.pay-box-pet{background:var(--pet-xp);border-color:var(--pet-l)}
+.pay-box-pet .pay-hdr{background:var(--pet-d)}
+.btn-pet{background:var(--pet-d)}
+.btn-pet:active{background:var(--pet)}
+.info-race{background:var(--pet-p);border:2px solid var(--pet-l);color:var(--pet-d);font-size:18.5px;font-weight:700;padding:20px 16px;border-radius:14px;line-height:1.4;box-shadow:0 4px 16px rgba(19,95,107,.16);margin-top:4px}
 .madre-cd{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:12px;background:linear-gradient(135deg,var(--cd) 0%,var(--cd-d) 100%);color:#fff;border-radius:12px;padding:12px 14px;box-shadow:0 4px 14px rgba(67,56,202,.30)}
 .madre-cd .cd-l{font-size:12.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;opacity:.82}
 .madre-cd .cd-t{font-size:21px;font-weight:700;letter-spacing:.02em;font-variant-numeric:tabular-nums;font-feature-settings:'tnum'}
@@ -222,6 +242,16 @@ textarea.finp{resize:none;height:100px;line-height:1.55}
   <div class="scontent">
     <div class="sctitle">Qué servicio<br>necesitás?</div>
     <div class="scsub">Seleccioná el tipo de masaje</div>
+    <div class="svc-card svc-race" id="sc-race" onclick="selRace()">
+      <div class="race-badge">🏃 Especial NB Race Series</div>
+      <div class="svc-row"><div class="svc-name">Masaje post competitivo</div><div class="chk"></div></div>
+      <div class="svc-desc">Maniobras movilizantes suaves que reducen el ácido láctico.</div>
+      <div class="chips">
+        <span class="chip chip-pet">⏱ 30 min</span>
+        <span class="chip chip-pet">Domingo 8/11</span>
+        <span class="chip chip-race" id="race-chip"></span>
+      </div>
+    </div>
     <div class="svc-card svc-madre" id="sc-madre" onclick="selMadre()">
       <div class="madre-badge">💐 Día de la Madre · 2x1</div>
       <div class="svc-row"><div class="svc-name">Exclusivo para mamá</div><div class="chk"></div></div>
@@ -526,6 +556,74 @@ textarea.finp{resize:none;height:100px;line-height:1.55}
     </a>
   </div>
 </div>
+
+<div class="screen" id="r2">
+  <div class="nav">
+    <div class="back-btn" onclick="goTo(1)"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+    <span class="step-badge">NB Race Series · 1 / 2</span>
+  </div>
+  <div class="progress"><div class="progress-fill" style="width:50%;background:var(--pet)"></div></div>
+  <div class="scontent">
+    <div class="sctitle">Tus datos</div>
+    <div class="scsub">El horario lo coordinamos por WhatsApp</div>
+    <div class="fgrp">
+      <label class="flbl">Nombre y apellido *</label>
+      <input type="text" class="finp" id="r-name" placeholder="¿Cómo te llamás?" oninput="raceChk()">
+    </div>
+    <div class="fgrp">
+      <label class="flbl">Teléfono *</label>
+      <input type="tel" class="finp" id="r-phone" placeholder="Ej: 2236001234" oninput="raceChk()">
+    </div>
+    <div class="fgrp">
+      <label class="flbl">Qué distancia corrés (opcional)</label>
+      <input type="text" class="finp" id="r-dist" placeholder="21k, 10k o 5k">
+    </div>
+    <div class="fgrp">
+      <label class="flbl">Algo que quieras contarme (opcional)</label>
+      <textarea class="finp" id="r-notes" placeholder="Molestias, lesiones previas, o algo que deba saber antes de la sesión"></textarea>
+    </div>
+  </div>
+  <div class="btm"><button class="btn-p btn-pet" id="rbn2" onclick="altShow('r3')" disabled>Ver resumen</button></div>
+</div>
+
+<div class="screen" id="r3">
+  <div class="nav">
+    <div class="back-btn" onclick="altShow('r2')"><svg viewBox="0 0 24 24"><path d="M15 18l-6-6 6-6"/></svg></div>
+    <span class="step-badge" style="color:var(--pet-d);font-weight:500">NB Race Series · Seña</span>
+  </div>
+  <div class="progress"><div class="progress-fill" style="width:100%;background:var(--pet)"></div></div>
+  <div class="scontent">
+    <div class="sctitle">Último paso</div>
+    <div class="scsub">Transferí la seña y enviá el comprobante</div>
+    <div class="sum-card sum-card-pet">
+      <div class="sum-hdr"><div class="sum-hdr-n">🏃 Post competitivo</div><div class="sum-hdr-s">Especial NB Race Series</div></div>
+      <div class="sum-row"><span class="sum-k">Día</span><span class="sum-v" id="r6-dia"></span></div>
+      <div class="sum-row"><span class="sum-k">Duración</span><span class="sum-v" id="r6-dur"></span></div>
+      <div class="sum-row"><span class="sum-k">Nombre</span><span class="sum-v" id="r6-n"></span></div>
+      <div class="sum-row"><span class="sum-k">Precio con 15%</span><span class="sum-v" id="r6-precio"></span></div>
+    </div>
+    <div class="pay-box pay-box-pet">
+      <div class="pay-hdr"><div class="l">Seña a transferir</div><div class="v" id="r6-sena"></div></div>
+      <div style="padding:16px 18px;display:flex;flex-direction:column;gap:12px">
+        <div>
+          <div style="font-size:12.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.1em;margin-bottom:6px">Alias</div>
+          <div class="alias-chip"><span>Roth.nanu</span><button id="r-copy-btn" onclick="copyAliasEl(this)">Copiar</button></div>
+        </div>
+        <div style="display:flex;justify-content:space-between;padding-top:4px;border-top:1px solid var(--brd)">
+          <span style="font-size:14.5px;color:var(--txt3)">Titular</span>
+          <span style="font-size:15.5px;color:var(--txt);font-weight:500">Daniela Cecilia Roth</span>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:14.5px;color:var(--txt3);line-height:1.65;margin-top:12px;text-align:center">Cuando reciba el comprobante te escribo y coordinamos el horario 💪</div>
+  </div>
+  <div class="btm">
+    <a id="rwa-btn" href="#" class="btn-wa" style="text-decoration:none">
+      <svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M17.5 14.4c-.3-.1-1.7-.8-1.9-.9-.3-.1-.5-.1-.7.1-.2.3-.7.9-.9 1.1-.2.2-.3.2-.6.1-1.6-.8-2.6-1.4-3.7-3.2-.3-.5.3-.5.8-1.5.1-.2 0-.4 0-.5 0-.1-.7-1.6-.9-2.2-.2-.6-.5-.5-.7-.5h-.6c-.2 0-.5.1-.8.4-.3.3-1 1-1 2.4 0 1.4 1 2.9 1.2 3.1.1.2 2 3.1 4.9 4.3 1.8.8 2.5.8 3.4.7.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.2.2-1.4-.1-.1-.3-.2-.6-.3z"/><path d="M20.5 3.5A10 10 0 003.3 14.6L2 22l7.6-1.3A10 10 0 1020.5 3.5z" stroke="currentColor" stroke-width="1.6" fill="none"/></svg>
+      Enviar comprobante por WhatsApp
+    </a>
+  </div>
+</div>
 </div>
 </div>
 
@@ -556,7 +654,7 @@ var SLOTS_SAB=[
   {t:'18:00',h:18,m:0,lbl:'Tarde'}
 ];
 
-var S={svc:null,gift:false,madre:false,date:null,timeStr:null,calY:0,calM:0,cur:0,diasOcupados:[],diasLoading:false,diasError:false};
+var S={svc:null,gift:false,madre:false,race:false,date:null,timeStr:null,calY:0,calM:0,cur:0,diasOcupados:[],diasLoading:false,diasError:false};
 
 // ============================================================
 // JSONP genérico — FAIL-CLOSED: devuelve null en timeout/error.
@@ -623,7 +721,7 @@ function goTo(n) {
 }
 
 function selSvc(i) {
-  S.svc=i; S.gift=false; S.madre=false;
+  S.svc=i; S.gift=false; S.madre=false; S.race=false;
   // Se marca por id, NO por indice del DOM: hay tarjetas (promo/gift) que no son servicios.
   document.querySelectorAll('#s1 .svc-card').forEach(function(c){c.classList.remove('sel');});
   document.getElementById('sc'+i).classList.add('sel');
@@ -635,6 +733,7 @@ function selSvc(i) {
 // ============================================================
 function init() {
   madreInitCard();
+  raceInitCard();
   var n=new Date();S.calY=n.getFullYear();S.calM=n.getMonth();
   cargarMes();
 }
@@ -833,10 +932,11 @@ function aplicarPromo(){
   var raw=document.getElementById('promo-input').value.trim().toUpperCase();
   var msg=document.getElementById('promo-msg');
   if(raw===''){promoDiscount=0;msg.textContent='';updatePriceChips();return;}
-  if(S.madre){   // el 2x1 ya es el descuento: no se acumula
+  if(S.madre || S.race){   // ya traen su propio descuento: no se acumulan
     promoDiscount=0;
     msg.style.color='#B91C1C';
-    msg.textContent='La promo 2x1 no se combina con otros descuentos.';
+    msg.textContent=S.race ? 'El especial NB Race Series ya tiene el 15% aplicado.'
+                            : 'La promo 2x1 no se combina con otros descuentos.';
     updatePriceChips();return;
   }
   if(PROMO_CODES[raw]!==undefined){
@@ -972,14 +1072,18 @@ var GIFT_OFF=10;  // 10% de descuento sobre el precio del tratamiento
 function giftPrecio(){return Math.round(SVC_PRICES[GIFT_SVC]*(1-GIFT_OFF/100));}
 
 function selGift(){
-  S.svc=null; S.gift=true; S.madre=false;
+  S.svc=null; S.gift=true; S.madre=false; S.race=false;
   document.querySelectorAll('#s1 .svc-card').forEach(function(c){c.classList.remove('sel');});
   document.getElementById('sc-gift').classList.add('sel');
   document.getElementById('bn1').disabled=false;
 }
 
 function continuar1(){
-  if(S.madre){
+  if(S.race){
+    document.getElementById('rbn2').disabled=true;
+    ['r-name','r-phone','r-dist','r-notes'].forEach(function(id){document.getElementById(id).value='';});
+    altShow('r2');
+  } else if(S.madre){
     document.getElementById('mbn2').disabled=true;
     ['m-name','m-phone','m-notes'].forEach(function(id){document.getElementById(id).value='';});
     altShow('m2');
@@ -993,7 +1097,7 @@ function continuar1(){
 }
 
 // Flujos que saltean calendario y horario (gift card y promo 2x1).
-var ALT_FLOWS={g2:['s1','g2','g3'],g3:['s1','g2','g3'],m2:['s1','m2','m3'],m3:['s1','m2','m3']};
+var ALT_FLOWS={g2:['s1','g2','g3'],g3:['s1','g2','g3'],m2:['s1','m2','m3'],m3:['s1','m2','m3'],r2:['s1','r2','r3'],r3:['s1','r2','r3']};
 function altShow(id){
   var order=ALT_FLOWS[id]||['s1',id];
   var prev=document.querySelector('.screen.active');
@@ -1001,6 +1105,7 @@ function altShow(id){
   if(!prev||!next||prev===next)return;
   if(id==='g3') giftFill();
   if(id==='m3') madreFill();
+  if(id==='r3') raceFill();
   var fwd=order.indexOf(id)>order.indexOf(prev.id);
   prev.classList.remove('active');
   if(fwd){prev.classList.add('exit');setTimeout(function(){prev.classList.remove('exit');},400);}
@@ -1097,7 +1202,7 @@ function madreCerrar(){
 }
 
 function selMadre(){
-  S.svc=null; S.gift=false; S.madre=true;
+  S.svc=null; S.gift=false; S.madre=true; S.race=false;
   document.querySelectorAll('#s1 .svc-card').forEach(function(c){c.classList.remove('sel');});
   document.getElementById('sc-madre').classList.add('sel');
   document.getElementById('bn1').disabled=false;
@@ -1137,6 +1242,89 @@ function madreFill(){
   if(notas) msg+='Notas: '+notas+'\n';
   msg+='\nTe envío el comprobante de la transferencia ('+precio+' al alias Roth.nanu) para coordinar las dos sesiones 😊';
   document.getElementById('mwa-btn').href='https://wa.me/542236013854?text='+encodeURIComponent(msg);
+}
+
+// ============================================================
+// ESPECIAL NB RACE SERIES — masaje post competitivo
+// ============================================================
+var RACE_PRECIO=30000;                  // valor del post competitivo
+var RACE_OFF=15;                        // 15% para quienes corrieron
+var RACE_SENA=10000;                    // sena para reservar; el saldo se coordina por WhatsApp
+var RACE_DUR_TXT='30 min';
+var RACE_DIA='Domingo 8 de noviembre';
+// Corte: termina el domingo 08/11/2026 a las 23:59 de Argentina.
+// En UTC a proposito (00:00 ART del 09/11 = 03:00 UTC): el corte cae en el
+// mismo instante aunque el celular este en otra zona horaria.
+var RACE_FIN=new Date(Date.UTC(2026,10,9,3,0,0));
+var raceTimer=null;
+function racePrecio(){return Math.round(RACE_PRECIO*(1-RACE_OFF/100));}  // 25.500
+function raceSaldo(){return racePrecio()-RACE_SENA;}                     // 15.500
+function raceVencida(){return (RACE_FIN-new Date())<=0;}
+
+function raceInitCard(){
+  var chip=document.getElementById('race-chip');
+  if(chip) chip.innerHTML='<b class="race-off">'+RACE_OFF+'% OFF</b><s>'+fmtPrecio(RACE_PRECIO)+'</s>'+fmtPrecio(racePrecio());
+  var ms=RACE_FIN-new Date();
+  if(ms<=0){raceCerrar();return;}                       // ya paso la carrera
+  if(ms<2147483647) raceTimer=setTimeout(raceCerrar,ms); // tope de setTimeout: ~24 dias
+}
+
+function selRace(){
+  S.svc=null; S.gift=false; S.madre=false; S.race=true;
+  document.querySelectorAll('#s1 .svc-card').forEach(function(c){c.classList.remove('sel');});
+  document.getElementById('sc-race').classList.add('sel');
+  document.getElementById('bn1').disabled=false;
+  if(promoDiscount>0){   // si venia un codigo aplicado, se limpia: no se acumula
+    promoDiscount=0;
+    document.getElementById('promo-input').value='';
+    var m=document.getElementById('promo-msg');
+    m.style.color='#B91C1C';
+    m.textContent='El especial NB Race Series ya tiene el 15% aplicado.';
+    updatePriceChips();
+  }
+}
+
+function raceChk(){
+  var ok=document.getElementById('r-name').value.trim().length>=2 &&
+         document.getElementById('r-phone').value.trim().length>=6;
+  document.getElementById('rbn2').disabled=!ok;
+}
+
+function raceFill(){
+  var nombre=document.getElementById('r-name').value.trim();
+  var tel=document.getElementById('r-phone').value.trim();
+  var dist=document.getElementById('r-dist').value.trim();
+  var notas=document.getElementById('r-notes').value.trim();
+  document.getElementById('r6-dia').textContent=RACE_DIA;
+  document.getElementById('r6-dur').textContent=RACE_DUR_TXT;
+  document.getElementById('r6-n').textContent=nombre;
+  document.getElementById('r6-precio').textContent=fmtPrecio(racePrecio());
+  document.getElementById('r6-sena').textContent=fmtPrecio(RACE_SENA);
+  var msg='Hola Nanu! 👋 Quiero reservar el masaje post competitivo — Especial NB Race Series 🏃\n\n';
+  msg+='Día: '+RACE_DIA+' (día de la carrera)\n';
+  msg+='Duración: '+RACE_DUR_TXT+'\n';
+  msg+='Precio: '+fmtPrecio(racePrecio())+' ('+RACE_OFF+'% de descuento sobre '+fmtPrecio(RACE_PRECIO)+')\n';
+  msg+='Seña: '+fmtPrecio(RACE_SENA)+'\n';
+  msg+='Saldo a coordinar: '+fmtPrecio(raceSaldo())+'\n';
+  msg+='Nombre: '+nombre+'\n';
+  msg+='Teléfono: '+tel+'\n';
+  if(dist) msg+='Distancia: '+dist+'\n';
+  if(notas) msg+='Notas: '+notas+'\n';
+  msg+='\nTe envío el comprobante de la seña ('+fmtPrecio(RACE_SENA)+' al alias Roth.nanu) para coordinar el horario 😊';
+  document.getElementById('rwa-btn').href='https://wa.me/542236013854?text='+encodeURIComponent(msg);
+}
+
+// Pasada la carrera la tarjeta desaparece y deja de ser elegible.
+// A quien ya este en r2/r3 NO se lo interrumpe: esta transfiriendo la sena.
+function raceCerrar(){
+  if(raceTimer){clearTimeout(raceTimer);raceTimer=null;}
+  var card=document.getElementById('sc-race');
+  if(card){card.style.display='none';card.onclick=null;}
+  var act=document.querySelector('.screen.active');
+  if(S.race && act && act.id==='s1'){
+    S.race=false;
+    document.getElementById('bn1').disabled=true;
+  }
 }
 
 // ============================================================
